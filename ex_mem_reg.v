@@ -12,9 +12,12 @@ module ex_mem_reg (
     input  wire [31:0] rd2_in,
     input  wire [7:0]  pc4_in,
     input  wire [4:0]  rd_in,
-    // ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡ »õ·Î Ãß°¡ ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-    input  wire [7:0]  pc_in,      // ¡ç EX ´Ü°èÀÇ PC¸¦ ÀÌ°÷À¸·Î Àü´Ş
-
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ìƒˆë¡œ ì¶”ê°€ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    input  wire [7:0]  pc_in,      // â† EX ë‹¨ê³„ì˜ PCë¥¼ ì´ê³³ìœ¼ë¡œ ì „ë‹¬
+    input  wire        take_branch_in, // NEW: branch taken flag
+    input  wire        take_jal_in,    // NEW: jal taken flag
+    input  wire [7:0]  branch_jal_target_in, // NEW: branch or JAL target
+ 
     output reg         RegWrite_out,
     output reg         MemRW_out,
     output reg  [1:0]  WBSel_out,
@@ -25,8 +28,11 @@ module ex_mem_reg (
     output reg  [31:0] rd2_out,
     output reg  [7:0]  pc4_out,
     output reg  [4:0]  rd_out,
-    // ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡ »õ·Î Ãß°¡ ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-    output reg  [7:0]  pc_out       // ¡ç MEM ´Ü°è¿¡¼­ ¿ø·¡ÀÇ PC¸¦ º¼ ¼ö ÀÖµµ·Ï
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ìƒˆë¡œ ì¶”ê°€ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    output reg         take_branch_out, // NEW
+    output reg         take_jal_out,    // NEW
+    output reg  [7:0]  branch_jal_target_out, // NEW target for branch or JAL   
+    output reg  [7:0]  pc_out       // â† MEM ë‹¨ê³„ì—ì„œ ì›ë˜ì˜ PCë¥¼ ë³¼ ìˆ˜ ìˆë„ë¡
 );
     always @(posedge clk or posedge rst) begin
         if (rst || flush) begin
@@ -40,8 +46,11 @@ module ex_mem_reg (
             rd2_out         <= 32'b0;
             pc4_out         <= 8'b0;
             rd_out          <= 5'b0;
-            // »õ·Î Ãß°¡ÇÑ ·¹Áö½ºÅÍµµ ¸®¼Â
+            // ìƒˆë¡œ ì¶”ê°€í•œ ë ˆì§€ìŠ¤í„°ë„ ë¦¬ì…‹
             pc_out          <= 8'b0;
+            take_branch_out <= 1'b0; // reset branch flag
+            take_jal_out    <= 1'b0; // reset jal flag
+            branch_jal_target_out <= 8'b0; // reset target            
         end else begin
             RegWrite_out    <= RegWrite_in;
             MemRW_out       <= MemRW_in;
@@ -53,8 +62,11 @@ module ex_mem_reg (
             rd2_out         <= rd2_in;
             pc4_out         <= pc4_in;
             rd_out          <= rd_in;
-            // ¿©±â¿¡ pc_in °ªÀ» ±×´ë·Î Àü´Ş
+            // ì—¬ê¸°ì— pc_in ê°’ì„ ê·¸ëŒ€ë¡œ ì „ë‹¬
             pc_out          <= pc_in;
+            take_branch_out <= take_branch_in;
+            take_jal_out    <= take_jal_in;
+            branch_jal_target_out <= branch_jal_target_in;            
         end
     end
 endmodule
